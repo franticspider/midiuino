@@ -4,6 +4,8 @@ This simple project shows how to handle midi signals that come in from the usb p
 
 The midi note signals are used to index a table of frequencies so that simple tunes can be played using a piezo buzzer. In addition, and array of LEDs is used to illustrate ways in which midi signals can be used. 
 
+![youTube](https://youtu.be/3qMomsDN1Ic "video")
+
 #Circuit
 
 *see fritzling file MidiBuzzer.fzz*
