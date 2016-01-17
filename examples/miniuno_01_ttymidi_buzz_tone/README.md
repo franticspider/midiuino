@@ -8,7 +8,11 @@ The midi note signals are used to index a table of frequencies so that simple tu
 
 *see fritzling file MidiBuzzer.fzz*
 
+##Schematic
+
 ![Fritzling Schematic](./MidiBuzzer_schem.png "Schematic")
+
+##Breadboard
 
 ![Fritzling Breadboard](./MidiBuzzer_bb.png "Schematic")
 
