@@ -537,19 +537,22 @@ void setup()
  synth.m_sMix = MIX_MIDDLE;
  synth.startAudio();
 }
+
+///*
 void loop()
 {
- synth.triggerMidiNote(256>>3);
- synth.m_nWaveForm2Increment = 512<<5;
+ synth.triggerMidiNote(48>>3);
+ synth.m_nWaveForm2Increment = 16<<5;
 
  // the LFO Oscilators control the volume of the two waveforms, a low value
- synth.m_nLFOIncrement1 = 256 >> 2;
+ synth.m_nLFOIncrement1 = 31 >> 2;
  synth.m_nLFOIncrement2 = 320 >> 2;
 
  // this mixes the two channels a low value will shut off one channel, a high value will shut off the other
  // anywhere in between will generate a proportional mix of the two channels
  synth.m_sMix = 300 >> 2;
 }
+//*/
 
 /* To read from potentiometers: 
 void loop()
