@@ -99,9 +99,12 @@ Based on a Mozzi example
 
 AUDIOPIN is Digital 9
 
+##### fixed:
 Based on a Mozzi example midi needs tweaking - noteon/off works, but frequency is wrong. Drums run nicely, but __independently__ of the midi clock.
 
-On further investigation using vkeybd, the FIRST note that is played is sounded, but nothing after that - noteoff doesn't seem to work either.
+On further investigation using vkeybd, the FIRST note that is played is sounded, but nothing after that - noteoff doesn't seem to work either. (needed to set 
+  Serial.begin(38400);)
+
 
 Added a bitCrush at line 174, works for values between 2 and 14 on the drums...
 

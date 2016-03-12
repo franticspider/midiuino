@@ -1,27 +1,27 @@
 /*  Example of a sound being triggered by MIDI input.
- *
- *  Demonstrates playing notes with Mozzi in response to MIDI input,
- *  using the standard Arduino MIDI library:
- *  http://playground.arduino.cc/Main/MIDILibrary
- *
- *  Mozzi help/discussion/announcements:
- *  https://groups.google.com/forum/#!forum/mozzi-users
- *
- *  Tim Barrass 2013.
- *  This example code is in the public domain.
- *
- *  sgreen - modified to use standard Arduino midi library, added saw wave, lowpass filter
- *  Audio output from pin 9 (pwm)
- *  Midi plug pin 2 (centre) to Arduino gnd, pin 5 to RX (0)
- *  http://www.philrees.co.uk/midiplug.htm
- *  Now with drums!
- *  
- *  
- *  sjh: Much of this is now based on code here:
- *  https://github.com/fakebitpolytechnic/cheapsynth/blob/master/Mozzi_drumsDG0_0_2BETA/
- *  
- *  
- */
+
+    Demonstrates playing notes with Mozzi in response to MIDI input,
+    using the standard Arduino MIDI library:
+    http://playground.arduino.cc/Main/MIDILibrary
+
+    Mozzi help/discussion/announcements:
+    https://groups.google.com/forum/#!forum/mozzi-users
+
+    Tim Barrass 2013.
+    This example code is in the public domain.
+
+    sgreen - modified to use standard Arduino midi library, added saw wave, lowpass filter
+    Audio output from pin 9 (pwm)
+    Midi plug pin 2 (centre) to Arduino gnd, pin 5 to RX (0)
+    http://www.philrees.co.uk/midiplug.htm
+    Now with drums!
+
+
+    sjh: Much of this is now based on code here:
+    https://github.com/fakebitpolytechnic/cheapsynth/blob/master/Mozzi_drumsDG0_0_2BETA/
+
+
+*/
 
 
 #include <MIDI.h>
@@ -63,10 +63,11 @@ Sample <hihato909_NUM_CELLS, AUDIO_RATE> hihatoSamp((const int8_t *)hihato909_DA
 
 byte pattern[4][16] = {
   //0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
-    1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0,  // 0 hhc
-    0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1,  // 1 hho
-    0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0,  // 2 snare
-    1, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 1   // 3 kick
+  1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0,  // 0 hhc
+  0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1,  // 1 hho
+  0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0,  // 2 snare
+  //  1, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 1   // 3 kick
+  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0   // 3 kick (silent for testing midi)
 };
 
 // envelope generator
@@ -76,30 +77,50 @@ int crushCtrl = 0;
 
 #define LED 13 // to see if MIDI is being recieved
 
-void HandleNoteOn(byte channel, byte note, byte velocity) { 
-  osc.setFreq(mtof(note)); // simple but less accurate frequency (sjh: Doesn't work!)
-  //osc.setFreq_Q16n16(Q16n16_mtof(Q8n0_to_Q16n16(note))); // accurate frequency
-  envelope.noteOn();
-  digitalWrite(LED,HIGH);
+void HandleNoteOn(byte channel, byte note, byte velocity) {
+
+  if (note == 36) { //Going to try to set the bass drum going!
+    kickSamp.start();
+  }
+  else if (note == 38) { //Going to try to set the bass drum going!
+    snareSamp.start();
+  }
+  else if (note == 40) { //Going to try to set the bass drum going!
+    hihatoSamp.start();
+  }
+  else if (note == 41) { //Going to try to set the bass drum going!
+    hihatcSamp.start();
+  }
+  else {
+    //osc.setFreq(mtof(note)); // simple but less accurate frequency
+    osc.setFreq_Q16n16(Q16n16_mtof(Q8n0_to_Q16n16(note))); // accurate frequency
+    envelope.noteOn();
+  }
+
+  digitalWrite(LED, HIGH);
 }
 
-void HandleNoteOff(byte channel, byte note, byte velocity) { 
+void HandleNoteOff(byte channel, byte note, byte velocity) {
   envelope.noteOff();
-  digitalWrite(LED,LOW);
+  digitalWrite(LED, LOW);
 }
 
 void HandleControlChange (byte channel, byte number, byte value)
 {
   // http://www.indiana.edu/~emusic/cntrlnumb.html
-  switch(number) {
-  //case 1:      // modulation wheel
-  case 105:
-    lpf.setCutoffFreq(value*2);  // control messages are in [0, 127] range
-    break;
-  case 106:
-    //lpf.setResonance(value*2);
-    crushCtrl = value;
-    break;
+  switch (number) {
+    //case 1:      // modulation wheel
+    case 105:
+    case 91:  //reverb on vkeybd
+      lpf.setCutoffFreq(value << 4); // control messages are in [0, 127] range
+      break;
+    case 106:
+    case 93:  //Chorus on vkeybd
+      lpf.setResonance(value << 4);
+      break;
+    case 66:  //Sostenuto on vkeybd
+      crushCtrl = value >> 4;
+      break;
   }
 }
 
@@ -108,14 +129,15 @@ void setup() {
 
   // Initiate MIDI communications, listen to all channels
   MIDI.begin(MIDI_CHANNEL_OMNI);
+  Serial.begin(38400);/* This baud rate is recommended for ALSA: http://alsa.opensrc.org/Serial  */
 
   // Connect the HandleNoteOn function to the library, so it is called upon reception of a NoteOn.
   MIDI.setHandleNoteOn(HandleNoteOn);  // Put only the name of the function
   MIDI.setHandleNoteOff(HandleNoteOff);  // Put only the name of the function
   MIDI.setHandleControlChange(HandleControlChange);
 
-  envelope.setADLevels(127,64);
-  envelope.setTimes(50,200,10000,200); // 10000 is so the note will sustain 10 seconds unless a noteOff comes
+  envelope.setADLevels(127, 64);
+  envelope.setTimes(50, 200, 10000, 200); // 10000 is so the note will sustain 10 seconds unless a noteOff comes
 
   lpf.setResonance(200);
   lpf.setCutoffFreq(255);
@@ -129,25 +151,25 @@ void setup() {
 
   //snareSamp.start();
 
-  startMozzi(CONTROL_RATE); 
+  startMozzi(CONTROL_RATE);
 }
 
 int beat = 0;
 int oldBeat = 0;
 
-void updateControl(){
+void updateControl() {
   MIDI.read();
   envelope.update();
 
-  // drums  
+  // drums
   ctrlCounter++;
   // this is called at 128Hz -> 120bmp!?
-  beat = ((ctrlCounter*2*4)>>7);
+  beat = ((ctrlCounter * 2 * 4) >> 7);
   if (beat != oldBeat) {
-    if (pattern[0][beat&0xf]) hihatcSamp.start();
-    if (pattern[1][beat&0xf]) hihatoSamp.start();
-    if (pattern[2][beat&0xf]) snareSamp.start();
-    if (pattern[3][beat&0xf]) kickSamp.start();
+    //if (pattern[0][beat & 0xf]) hihatcSamp.start();
+    //if (pattern[1][beat & 0xf]) hihatoSamp.start();
+    //if (pattern[2][beat & 0xf]) snareSamp.start();
+    //if (pattern[3][beat&0xf]) kickSamp.start();
   }
   oldBeat = beat;
 }
@@ -155,29 +177,39 @@ void updateControl(){
 // strip the low bits off!
 int bitCrush(int x, int a)
 {
-  return (x>>a)<<a;
+  return (x >> a) << a;
 }
 
-int updateAudio(){
+// strip the low bits off!
+int MidibitCrush(int x)
+{
+  return (x >> crushCtrl) << crushCtrl;
+}
+
+
+
+int updateAudio() {
   //return (int) (envelope.next() * osc.next())>>8;
-// return (int) (envelope.next() * lpf.next(osc.next()))>>8;
-  int x = (int) (envelope.next() * osc.next())>>8;
-  
- //int x = (envelope.next() * lpf.next(osc.next()))>>8; 
+  // return (int) (envelope.next() * lpf.next(osc.next()))>>8;
+  int x = (int) (envelope.next() * osc.next()) >> 8;
+
+  //int x = (envelope.next() * lpf.next(osc.next()))>>8;
   //x = bitCrush(x, crushCtrl>>4);
   //x = (x * crushCtrl)>>4;  // simple gain
-  x = bitCrush(x, 1);
+  x = bitCrush(x, 4);
+  //x = MidibitCrush(x);
   x = lpf.next(x);
 
   // drums please!
   int drums = kickSamp.next() + snareSamp.next() + hihatcSamp.next() + hihatoSamp.next();
-  drums = bitCrush(drums,6);
-  x += drums<<1;
+  drums = MidibitCrush(drums);
+  //x += drums << 1;
+  x = drums << 1;
   return x;
 }
 
 
 void loop() {
   audioHook(); // required here
-} 
+}
 
