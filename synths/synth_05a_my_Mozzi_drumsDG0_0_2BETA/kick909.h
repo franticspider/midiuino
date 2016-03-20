@@ -4,7 +4,8 @@
 #include "Arduino.h"
 #include <avr/pgmspace.h>
  
-#define kick909_NUM_CELLS 2048
+//#define kick909_NUM_CELLS 2048 (This was clicky...)
+#define kick909_NUM_CELLS 1536
 #define kick909_SAMPLERATE 16384
  
 const char __attribute__((progmem)) kick909_DATA [] = {-1, 0, -1, 0, -1, 0, 0,
@@ -114,6 +115,6 @@ const char __attribute__((progmem)) kick909_DATA [] = {-1, 0, -1, 0, -1, 0, 0,
 -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2,
 -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2,
 -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2,
--2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2, };
+-2, -2, -2, -2, -2, -2, -2, -2, -2, -2, -2 };
  
  #endif /* kick909_H_ */

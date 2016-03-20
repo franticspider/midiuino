@@ -20,7 +20,6 @@
     sjh: Much of this is now based on code here:
     https://github.com/fakebitpolytechnic/cheapsynth/blob/master/Mozzi_drumsDG0_0_2BETA/
 
-
 */
 
 
@@ -41,6 +40,8 @@ MIDI_CREATE_DEFAULT_INSTANCE();
 #include "hihatc909.h"
 #include "hihato909.h"
 
+#include "thiswav.h"
+
 #include <mozzi_midi.h>
 #include <ADSR.h>
 //#include <fixedMath.h>
@@ -60,7 +61,9 @@ Sample <kick909_NUM_CELLS, AUDIO_RATE> kickSamp((const int8_t *) kick909_DATA);
 Sample <snare909_NUM_CELLS, AUDIO_RATE> snareSamp((const int8_t *) snare909_DATA);
 Sample <hihatc909_NUM_CELLS, AUDIO_RATE> hihatcSamp((const int8_t *)hihatc909_DATA);
 Sample <hihato909_NUM_CELLS, AUDIO_RATE> hihatoSamp((const int8_t *)hihato909_DATA);
+Sample <mywav_NUM_CELLS, AUDIO_RATE> mywavSamp((const int8_t *)mywav_DATA);
 
+/* We only need this if we aren't doing midi drums:
 byte pattern[4][16] = {
   //0  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15
   1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0,  // 0 hhc
@@ -69,6 +72,7 @@ byte pattern[4][16] = {
   //  1, 0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 1   // 3 kick
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0   // 3 kick (silent for testing midi)
 };
+*/
 
 // envelope generator
 ADSR <CONTROL_RATE, AUDIO_RATE> envelope;
@@ -79,22 +83,34 @@ int crushCtrl = 0;
 
 void HandleNoteOn(byte channel, byte note, byte velocity) {
 
-  if (note == 36) { //Going to try to set the bass drum going!
-    kickSamp.start();
-  }
-  else if (note == 38) { //Going to try to set the bass drum going!
-    snareSamp.start();
-  }
-  else if (note == 40) { //Going to try to set the bass drum going!
-    hihatoSamp.start();
-  }
-  else if (note == 41) { //Going to try to set the bass drum going!
-    hihatcSamp.start();
-  }
-  else {
-    //osc.setFreq(mtof(note)); // simple but less accurate frequency
-    osc.setFreq_Q16n16(Q16n16_mtof(Q8n0_to_Q16n16(note))); // accurate frequency
-    envelope.noteOn();
+  switch (note) {
+    case 36:  //Going to try to set the bass drum going!
+      kickSamp.start();
+      break;
+      
+    case 40://38: //Going to try to set the bass drum going!
+    case 41:
+      snareSamp.start();
+      break;
+      
+    case 47://40:
+      hihatoSamp.start();
+      break;
+    case 45://41:
+      hihatcSamp.start();
+      break;
+    case 48:
+      mywavSamp.start();
+      break;
+
+    default:
+      //osc.setFreq(mtof(note)); // simple but less accurate frequency
+      osc.setFreq_Q16n16(Q16n16_mtof(Q8n0_to_Q16n16(note))); // accurate frequency
+      envelope.noteOn();
+      break;
+
+
+
   }
 
   digitalWrite(LED, HIGH);
@@ -148,6 +164,10 @@ void setup() {
   snareSamp.setFreq((float) snare909_SAMPLERATE / (float) snare909_NUM_CELLS);
   hihatcSamp.setFreq((float) hihatc909_SAMPLERATE / (float) hihatc909_NUM_CELLS);
   hihatoSamp.setFreq((float) hihato909_SAMPLERATE / (float) hihato909_NUM_CELLS);
+  
+  mywavSamp.setFreq((float) mywav_SAMPLERATE/ (float) mywav_NUM_CELLS);
+  //mywavSamp.setStart(1024);//Attempt to remove the click...
+  //mywavSamp.setLoopingOn();//just curious....loops forever - might be good for long samples...
 
   //snareSamp.start();
 
@@ -189,6 +209,8 @@ int MidibitCrush(int x)
 
 
 int updateAudio() {
+
+/*  
   //return (int) (envelope.next() * osc.next())>>8;
   // return (int) (envelope.next() * lpf.next(osc.next()))>>8;
   int x = (int) (envelope.next() * osc.next()) >> 8;
@@ -199,13 +221,17 @@ int updateAudio() {
   x = bitCrush(x, 4);
   //x = MidibitCrush(x);
   x = lpf.next(x);
-
+*/
   // drums please!
-  int drums = kickSamp.next() + snareSamp.next() + hihatcSamp.next() + hihatoSamp.next();
-  drums = MidibitCrush(drums);
+  int drums = kickSamp.next() + snareSamp.next() + hihatcSamp.next() + hihatoSamp.next() + mywavSamp.next();
+
+
+/*  
+  //drums = MidibitCrush(drums);
   //x += drums << 1;
   x = drums << 1;
   return x;
+  */
 }
 
 

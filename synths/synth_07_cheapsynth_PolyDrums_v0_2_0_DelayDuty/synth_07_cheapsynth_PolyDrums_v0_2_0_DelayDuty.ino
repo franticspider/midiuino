@@ -62,6 +62,7 @@ int threshold = 255 / (MAX_NOTES);
 #include "snare909.h"
 #include "hihatc909.h"
 #include "hihato909.h"
+#include "thiswav.h"
 #endif
 
 // use #define for CONTROL_RATE, not a constant
@@ -119,8 +120,10 @@ int button1_old = 0;
 #if DRUM_SAMPLES
 // drums
 Sample <kick909_NUM_CELLS, AUDIO_RATE> kickSamp(kick909_DATA);
-Sample <snare909_NUM_CELLS, AUDIO_RATE> snareSamp(snare909_DATA);
+//Sample <snare909_NUM_CELLS, AUDIO_RATE> snareSamp(snare909_DATA);
+Sample <mywav_NUM_CELLS, AUDIO_RATE>       snareSamp(mywav_DATA);
 Sample <hihatc909_NUM_CELLS, AUDIO_RATE> hihatcSamp(hihatc909_DATA);
+//Sample <mywav_NUM_CELLS, AUDIO_RATE>       hihatcSamp(mywav_DATA);
 Sample <hihato_NUM_CELLS, AUDIO_RATE> hihatoSamp(hihato_DATA);
 #endif
 
