@@ -1,61 +1,3 @@
-
-#include <Ead.h>
-#include <WavePacketSample.h>
-#include <Line.h>
-#include <LowPassFilter.h>
-#include <twi_nonblock.h>
-#include <CircularBuffer.h>
-#include <mozzi_utils.h>
-#include <AudioConfigStandardPlus.h>
-#include <primes.h>
-#include <mozzi_midi.h>
-#include <AutoRange.h>
-#include <MozziGuts.h>
-#include <Stack.h>
-#include <Phasor.h>
-#include <mozzi_fixmath.h>
-#include <AutoMap.h>
-#include <meta.h>
-#include <cogl_sqrti.h>
-#include <DCfilter.h>
-#include <mult16x8.h>
-#include <Smooth.h>
-#include <ADSR.h>
-#include <OverSample.h>
-#include <SampleHuffman.h>
-#include <mult32x16.h>
-#include <IntMap.h>
-#include <WavePacket.h>
-#include <ReverbTank.h>
-#include <EventDelay.h>
-#include <ControlDelay.h>
-#include <WaveShaper.h>
-#include <Metronome.h>
-#include <AudioConfigStandard9bitPwm.h>
-#include <mozzi_analog.h>
-#include <mozzi_rand.h>
-#include <RCpoll.h>
-#include <StateVariable.h>
-#include <Portamento.h>
-#include <RollingAverage.h>
-#include <mult16x16.h>
-#include <AudioConfigHiSpeed14bitPwm.h>
-#include <CapPoll.h>
-#include <RollingStat.h>
-#include <AudioDelay.h>
-#include <AudioConfigTeensy3_12bit.h>
-#include <AudioDelayFeedback.h>
-#include <PDResonant.h>
-#include <Oscil.h>
-#include <Sample.h>
-#include <mozzi_config.h>
-
-#include <midi_Namespace.h>
-#include <midi_Settings.h>
-#include <midi_Defs.h>
-#include <midi_Message.h>
-#include <MIDI.h>
-
 /*  Example of a sound being triggered by MIDI input.
 
     Demonstrates playing notes with Mozzi in response to MIDI input,
@@ -116,33 +58,22 @@ MIDI_CREATE_DEFAULT_INSTANCE();
 
 unsigned long ctrlCounter = 0;
 
-/************************************************/
-/* FIXING MOZZI.....! */
-/* ISSUE 1: No stop() function in Sample.h */
-/* Struggled to extend the 'Sample.h' class template */
-/* So I'm going to hack the code to add a 'stop()' function, but I'll copy it here (because this is the 2nd time I've done it!): */
+///////////////////////////////////////////////////////////////////////////
+/*BASS DRUM VARIABLES - From Line_Gliss_Double_32k_HIFI in mozzi examples*/
 
-/*
-  inline void stop(){
-    setLoopingOff();
-    phase_fractional = endpos_fractional; 
-  }
-*/
-
-/* ISSUE 2: dual declarations of isqrt32() and isqrt16() - commented these out in cogl_sqrti.h */
-
-/* 
+Oscil <SAW2048_NUM_CELLS, AUDIO_RATE> abd_aSaw1(SAW2048_DATA);
+byte abd_lo_note = 24; // midi note numbers
 
 
 
-/***********************************************/
 
+///////////////////////////////////////////////////////////////////////////
 
 
 
 // audio sinewave oscillator
 //Oscil <SIN2048_NUM_CELLS, AUDIO_RATE> osc(SIN2048_DATA);
-Oscil <SAW2048_NUM_CELLS, AUDIO_RATE> osc(SAW2048_DATA);
+//Oscil <SAW2048_NUM_CELLS, AUDIO_RATE> osc(SAW2048_DATA);
 
 // drums
 //Sample <kick909_NUM_CELLS, AUDIO_RATE> kickSamp((const int8_t *) kick909_DATA);
@@ -204,8 +135,6 @@ int crushCtrl = 0;
 #define LEDD 4
 
 
-//Forward function declarations: 
-float MidiSetFreq(byte value, int rate, int ncells);
 
 void reset_params(){
   /* Bit Crush Settings */
@@ -240,11 +169,11 @@ void HandleNoteOn(byte channel, byte note, byte velocity) {
     case 24: 
       reset_params();
       
-      digitalWrite(LEDA, HIGH);//ATMPATCH_HIGH);
-      digitalWrite(LEDB, HIGH);//ATMPATCH_HIGH);
-      digitalWrite(LEDC, HIGH);//ATMPATCH_HIGH);
-      digitalWrite(LEDD, HIGH);//ATMPATCH_HIGH);
-      digitalWrite(LED , HIGH);//ATMPATCH_HIGH);
+      digitalWrite(LEDA, HIGH);
+      digitalWrite(LEDB, HIGH);
+      digitalWrite(LEDC, HIGH);
+      digitalWrite(LEDD, HIGH);
+      digitalWrite(LED , HIGH);
       break;
 
 
@@ -252,7 +181,7 @@ void HandleNoteOn(byte channel, byte note, byte velocity) {
     /*KICK*/
     case 36:  //Going to try to set the bass drum going!
       kickSamp.start();
-      digitalWrite(LEDA, HIGH);//ATMPATCH_HIGH);
+      digitalWrite(LEDA, HIGH);
       break;
 
     /*TRAP*/
@@ -313,11 +242,10 @@ void HandleNoteOff(byte channel, byte note, byte velocity) {
 
 
     /*Strategy - since there is no stop() function, set start() to the end of the sample...*/
-    /*TODO: somehow I've deleted the stop() function...! fix this - send patch request etc...*/
       
     /*KICK*/
     case 36:  //Going to try to set the bass drum going!
-      kickSamp.stop();//start(tech1909bdwav_NUM_CELLS-1);
+      kickSamp.stop();//tart(tech1909bdwav_NUM_CELLS-1);
       digitalWrite(LEDA, LOW);
       break;
 
@@ -544,7 +472,7 @@ void setup() {
   lpf.setResonance(200);
   lpf.setCutoffFreq(255);
 
-  osc.setFreq(440); // default frequency
+//  osc.setFreq(440); // default frequency
 
   //kickSamp.setFreq((float) kick909_SAMPLERATE / (float) kick909_NUM_CELLS);
   kickSamp.setFreq(MidiSetFreq(64,  tech1909bdwav_SAMPLERATE,  tech1909bdwav_NUM_CELLS));   //(float) tech1909bdwav_SAMPLERATE / (float) tech1909bdwav_NUM_CELLS);
