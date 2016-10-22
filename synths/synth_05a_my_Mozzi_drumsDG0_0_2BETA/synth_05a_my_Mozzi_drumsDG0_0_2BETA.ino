@@ -118,6 +118,7 @@ unsigned long ctrlCounter = 0;
 
 /************************************************/
 /* FIXING MOZZI.....! */
+
 /* ISSUE 1: No stop() function in Sample.h */
 /* Struggled to extend the 'Sample.h' class template */
 /* So I'm going to hack the code to add a 'stop()' function, but I'll copy it here (because this is the 2nd time I've done it!): */
@@ -130,10 +131,6 @@ unsigned long ctrlCounter = 0;
 */
 
 /* ISSUE 2: dual declarations of isqrt32() and isqrt16() - commented these out in cogl_sqrti.h */
-
-/* 
-
-
 
 /***********************************************/
 
@@ -196,7 +193,7 @@ ADSR <CONTROL_RATE, AUDIO_RATE> envelope;
 LowPassFilter lpf;
 int crushCtrl = 0;
 
-#define LED 13 // to see if MIDI is being recieved
+#define LED 6//13 // to see if MIDI is being recieved
 
 #define LEDA 5
 #define LEDB 2
@@ -601,10 +598,10 @@ int updateAudio() {
 
   //hmmm - bitcrushing each sample seems a bit too processor heavy...
   int drums = 
-              MidibitCrush( kickSamp.next(), bc_bd) + 
-              MidibitCrush( snareSamp.next(), bc_sn)  + 
-              MidibitCrush( hihatcSamp.next(), bc_hc)  + 
-              MidibitCrush( hihatoSamp.next(), bc_ho)  + 
+              MidibitCrush( kickSamp.next(),        bc_bd) + 
+              MidibitCrush( snareSamp.next(),       bc_sn)  + 
+              MidibitCrush( hihatcSamp.next(),      bc_hc)  + 
+              MidibitCrush( hihatoSamp.next(),      bc_ho)  + 
               MidibitCrush( tech1fx1wavSamp.next(), bc_f1)  + 
               MidibitCrush( tech1fx2wavSamp.next(), bc_f2)  + 
               MidibitCrush( tech1fx3wavSamp.next(), bc_f3) ;

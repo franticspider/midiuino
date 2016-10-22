@@ -7,7 +7,8 @@
 
 // gcc moz_samp.c -o moz_samp -lsndfile
 
-#define NLEN 256;
+#define NLEN 256
+
 /* structure to hold the params */
 typedef struct td_opts{
 
@@ -16,7 +17,7 @@ typedef struct td_opts{
     int threshold;	// limiting value for resampling
     char ifn[NLEN]; //infile name
     char wvn[NLEN]; //wav  name (without the '.h')
-
+	int pw;			//flag for whether to print the raw wav values...
 }opts;
 
 
@@ -32,10 +33,25 @@ opts * godefaults(){
 	sprintf(op->ifn,"file.wav");
 	sprintf(op->wvn,"thiswav");
 	
+	op->pw = 0;
+	
 	return op;
 }
 
 
+void printopts(opts *op){
+
+	printf("out_num is\t%d\n",op->out_num);
+	printf("out_rate is\t%d\n",op->out_rate);
+	printf("threshold is\t%d\n",op->threshold);
+	
+	printf("infile is\t%s\n",op->ifn);
+	printf("wavname os\t%s\n",op->wvn);
+	printf("pw is\t%d\n",op->pw);
+
+
+}
+ 
 
 
 int mygo(int argc, char **argv, opts* op){
@@ -44,10 +60,15 @@ int mygo(int argc, char **argv, opts* op){
 	opterr = 0;
 	while ((c = getopt (argc, argv, "abi:o:t:")) != -1){
 		switch (c){
+		case 'i': //Infile needed:
+			sprintf(op->ifn,"%s",optarg);
 		case 'a':
 			break;
 		case 'b':
 			break;
+		case 'w':
+			op->pw = 1;
+			break;	
 		case 't':
 			op->threshold = atoi(optarg);
 			break;
@@ -83,8 +104,9 @@ int main(int argc, char **argv)
     int idx;
     
     FILE *out;
+    FILE *wo;
     
-    char fn[nlen];
+    char fn[NLEN];
     
     /* Set the program options */
     opts * op;
@@ -94,7 +116,7 @@ int main(int argc, char **argv)
     
     /* Open the WAV file. */
     info.format = 0;
-    sf = sf_open("file.wav",SFM_READ,&info);
+    sf = sf_open(op->ifn,SFM_READ,&info);
     if (sf == NULL)
         {
         printf("Failed to open the file \"file.wav\".\n");
@@ -114,15 +136,18 @@ int main(int argc, char **argv)
     num = sf_read_int(sf,buf,num_items);
     sf_close(sf);
     printf("Read %d items\n",num);
+
     /* Write the data to filedata.out. */
     out = fopen("filedata.out","w");
-    for (i = 0; i < num; i += c)
-        {
-        for (j = 0; j < c; ++j)
-            fprintf(out,"%d ",buf[i+j]);
-        fprintf(out,"\n");
-        }
-    fclose(out);
+    if(op->pw){
+		for (i = 0; i < num; i += c)
+		    {
+		    for (j = 0; j < c; ++j)
+		        fprintf(out,"%d ",buf[i+j]);
+		    fprintf(out,"\n");
+		    }
+		fclose(out);
+    }
     
     /* 32 bit stereo to 8-bit mono */
     //16384 samplerate needed
@@ -173,6 +198,8 @@ int main(int argc, char **argv)
     }
     
     fclose(out);
+    
+    printopts(op);
     
         
     return 0;
