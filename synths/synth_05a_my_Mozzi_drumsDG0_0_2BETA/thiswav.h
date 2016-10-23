@@ -5,7 +5,7 @@
 #include <avr/pgmspace.h>
 
 #define mywav_NUM_CELLS 2048
-#define mywav_SAMPLERATE 16384
+#define mywav_SAMPLERATE 32768 //16384
 const int8_t __attribute__((progmem)) mywav_DATA [] = {
 -40, /* 0000 *///Was 0... trying to get rid of click
 -40, /* 0001 */

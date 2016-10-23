@@ -5,7 +5,7 @@
 #include <avr/pgmspace.h>
 
 #define tech1fx3wav_NUM_CELLS 1024
-#define tech1fx3wav_SAMPLERATE 16384
+#define tech1fx3wav_SAMPLERATE 32768 //16384
 const int8_t __attribute__((progmem)) tech1fx3wav_DATA [] = {
 0, /* 0000 */
 -40, /* 0001 */

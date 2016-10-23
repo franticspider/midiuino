@@ -217,13 +217,13 @@ void reset_params(){
   
   /* Freqshift Settings */
   byte value = 64;
-  kickSamp.setFreq       (MidiSetFreq(value,tech1909bdwav_SAMPLERATE, tech1909bdwav_NUM_CELLS));
-  snareSamp.setFreq      (MidiSetFreq(value,snare909_SAMPLERATE,      snare909_NUM_CELLS));
-  hihatcSamp.setFreq     (MidiSetFreq(value,hihatc909_SAMPLERATE,     hihatc909_NUM_CELLS));
-  hihatoSamp.setFreq     (MidiSetFreq(value,hihato909_SAMPLERATE,     hihato909_NUM_CELLS));
-  tech1fx1wavSamp.setFreq(MidiSetFreq(value,mywav_SAMPLERATE,         mywav_NUM_CELLS));
-  tech1fx2wavSamp.setFreq(MidiSetFreq(value,tech1fx2wav_SAMPLERATE,   tech1fx2wav_NUM_CELLS));
-  tech1fx3wavSamp.setFreq(MidiSetFreq(value,tech1fx2wav_SAMPLERATE,   tech1fx2wav_NUM_CELLS));
+  kickSamp.setFreq(MidiSetFreq(value,tech1909bdwav_SAMPLERATE,tech1909bdwav_NUM_CELLS));
+  snareSamp.setFreq(MidiSetFreq(value,snare909_SAMPLERATE,snare909_NUM_CELLS));
+  hihatcSamp.setFreq(MidiSetFreq(value,hihatc909_SAMPLERATE,hihatc909_NUM_CELLS));
+  hihatoSamp.setFreq(MidiSetFreq(value,hihato909_SAMPLERATE,hihato909_NUM_CELLS));
+  tech1fx1wavSamp.setFreq(MidiSetFreq(value,mywav_SAMPLERATE,mywav_NUM_CELLS));
+  tech1fx2wavSamp.setFreq(MidiSetFreq(value,tech1fx2wav_SAMPLERATE,tech1fx2wav_NUM_CELLS));
+  tech1fx3wavSamp.setFreq(MidiSetFreq(value,tech1fx2wav_SAMPLERATE,tech1fx2wav_NUM_CELLS));
 }
 
 

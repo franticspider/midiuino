@@ -6,7 +6,7 @@
  
 //#define snare909_NUM_CELLS 2048 This is clicky!
 #define snare909_NUM_CELLS 1536
-#define snare909_SAMPLERATE 16384
+#define snare909_SAMPLERATE 32768 //16384
  
 const char __attribute__((progmem)) snare909_DATA [] = {0, -1, 0, -1, 0, -1, 0,
 -1, 0, -1, 0, -1, 0, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0, -1, 0,

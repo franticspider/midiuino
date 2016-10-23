@@ -2,12 +2,34 @@
 #include <stdlib.h>
 #include <sndfile.h>
 
+#include <samplerate.h>
 
 #include <unistd.h>
 
-// gcc moz_samp.c -o moz_samp -lsndfile
+/*
+
+To compile, do: 
+
+ gcc moz_samp.c -o moz_samp -lsndfile
+
+**samplerate conversion api:
+
+http://www.mega-nerd.com/SRC/index.html
+
+http://stackoverflow.com/questions/10558275/audio-samplerate-converter-using-libsndfile-and-libsamplerate-not-sure-if-using
+
+
+Reading further, it might be better to adapt the following to do what I want!
+
+Tom says "suede-ocode"
+
+https://github.com/erikd/libsndfile/blob/master/programs/sndfile-convert.c
+
+*/
+
 
 #define NLEN 256
+#define NSAMP 32768
 
 /* structure to hold the params */
 typedef struct td_opts{
@@ -27,7 +49,7 @@ opts * godefaults(){
 	op = (opts *) malloc(sizeof(opts));
 	
     op->out_num = 2048;//1024;
-    op->out_rate = 16384;
+    op->out_rate = NSAMP;
     op->threshold = 0; //if zero, we won't apply  threshold
 	
 	sprintf(op->ifn,"file.wav");
@@ -52,34 +74,53 @@ void printopts(opts *op){
 
 }
  
+void printusage(){
 
+	printf("\n");
+	printf("OPTIONS FOR moz_samp:\n");
+	printf("\n");
+	printf("  OPT  Description        Default Vaule\n");
+	printf("  d    debug              off\n");
+	printf("  n    number of samples  %d\n",NSAMP);
+
+
+
+}
 
 int mygo(int argc, char **argv, opts* op){
 
 	int c;
 	opterr = 0;
-	while ((c = getopt (argc, argv, "abi:o:t:")) != -1){
+	while ((c = getopt (argc, argv, "abdhi:n:o:t:")) != -1){
 		switch (c){
-		case 'i': //Infile needed:
-			sprintf(op->ifn,"%s",optarg);
 		case 'a':
 			break;
 		case 'b':
 			break;
-		case 'w':
+		case 'd':
 			op->pw = 1;
+			break;
+		case 'h':
+			printusage();
+			exit(0);
 			break;	
+		case 'i': //Infile needed:
+			sprintf(op->ifn,"%s",optarg);
 		case 't':
 			op->threshold = atoi(optarg);
 			break;
+		case 'w':
+			op->pw = 1;
+			break;	
 		case '?':
+			fprintf(stderr,"INPUT ERROR:\n");
 			if (optopt == 'c')
 				fprintf (stderr, "Option -%c requires an argument.\n", optopt);
 			else if (isprint (optopt))
 				fprintf (stderr, "Unknown option `-%c'.\n", optopt);
 			else
 		  		fprintf (stderr,"Unknown option character `\\x%x'.\n", optopt);
-		return 1;
+			return 1;
 			default:
 		abort ();
 		}
@@ -117,20 +158,22 @@ int main(int argc, char **argv)
     /* Open the WAV file. */
     info.format = 0;
     sf = sf_open(op->ifn,SFM_READ,&info);
-    if (sf == NULL)
-        {
+    if (sf == NULL){
         printf("Failed to open the file \"file.wav\".\n");
         exit(-1);
-        }
+    }
+
     /* Print some of the info, and figure out how much data to read. */
     f = info.frames;
     sr = info.samplerate;
     c = info.channels;
+    
     printf("frames=%d\n",f);
     printf("samplerate=%d, outrate=%d\n",sr,op->out_rate);
     printf("channels=%d\n",c);
     num_items = f*c;
     printf("num_items=%d\n",num_items);
+    
     /* Allocate space for the data to be read, then read it. */
     buf = (int *) malloc(num_items*sizeof(int));
     num = sf_read_int(sf,buf,num_items);
@@ -169,7 +212,7 @@ int main(int argc, char **argv)
     fprintf(out,"#include <avr/pgmspace.h>\n");
     fprintf(out,"\n");
     fprintf(out,"#define %s_NUM_CELLS 1024\n",op->wvn);
-    fprintf(out,"#define %s_SAMPLERATE 16384\n",op->wvn);
+    fprintf(out,"#define %s_SAMPLERATE %d\n",op->wvn,NSAMP);
  
     fprintf(out,"const int8_t __attribute__((progmem)) %s_DATA [] = {\n",op->wvn);
     
@@ -201,6 +244,10 @@ int main(int argc, char **argv)
     
     printopts(op);
     
+    if(argc == 1){
+    	printf("\nYou ran moz_samp with no options\ndo: \"moz_samp -h\" for help\n\n");
+
+	}
         
     return 0;
     }

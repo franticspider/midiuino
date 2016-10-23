@@ -5,7 +5,7 @@
 #include <avr/pgmspace.h>
  
 #define hihatc909_NUM_CELLS 1024
-#define hihatc909_SAMPLERATE 16384 
+#define hihatc909_SAMPLERATE 32768 //16384 
 const char __attribute__((progmem)) hihatc909_DATA [] = {
 1,	-2, 	1, 	-2, 	2, 	0, 	-4,	13,	-18,	2, 
 3, 3, -1, 4, -9, 7, -5, -2, 4, -22, 23, -7, -8, -2, 7, -5, -8, 12,			

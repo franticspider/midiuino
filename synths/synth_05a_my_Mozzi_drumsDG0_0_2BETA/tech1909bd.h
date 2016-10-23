@@ -6,7 +6,7 @@
 
 //#define tech1909bdwav_NUM_CELLS 1024
 #define tech1909bdwav_NUM_CELLS 900
-#define tech1909bdwav_SAMPLERATE 16384
+#define tech1909bdwav_SAMPLERATE 32768 //16384
 const int8_t __attribute__((progmem)) tech1909bdwav_DATA [] = {
 0, /* 0000 */
 0, /* 0001 */
