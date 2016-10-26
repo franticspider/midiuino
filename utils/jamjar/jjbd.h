@@ -1,12 +1,12 @@
-#ifndef thiswav_H_
-#define thiswav_H_
+#ifndef jjbd_H_
+#define jjbd_H_
 
 #include "Arduino.h"
 #include <avr/pgmspace.h>
 
-#define thiswav_NUM_CELLS 1024
-#define thiswav_SAMPLERATE 32768
-const int8_t __attribute__((progmem)) thiswav_DATA [] = {
+#define jjbd_NUM_CELLS 1024
+#define jjbd_SAMPLERATE 32768
+const int8_t __attribute__((progmem)) jjbd_DATA [] = {
 0, /* 0000 */
 	0, /* 0002 */
 	0, /* 0004 */

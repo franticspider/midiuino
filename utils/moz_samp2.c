@@ -5,14 +5,14 @@
 #include <samplerate.h>
 
 #include <unistd.h>
-#include <limits.h>
 
+#include <limits.h>
 
 /*
 
 To compile, do: 
 
- gcc moz_samp.c -o moz_samp -lsndfile
+ gcc moz_samp2.c -o moz_samp -lsndfile
 
 **samplerate conversion api:
 
@@ -33,6 +33,13 @@ Alternative strategy is to install sndfile-convert using apt-get. Then use this 
 The proper resampling binary is here: 
 ~/software/libsamplerate-0.1.9/examples$ ./sndfile-resample -h
 
+*********************************
+
+New version, 25 Oct 2016
+The new strategy is to use the sndfile example programs to do the samplerate and bit depth conversion. These use better algorithms, and make for a less noisy result. BUT we still need 
+code to read a sample and make a C header file that mozzi can make use of, so that's what this 
+new version does. See the script in this util folder that'll do the conversion to the right format, 
+then run this to generate the header. Simples!
 
 
 */
@@ -73,6 +80,8 @@ opts * godefaults(){
 
 void printopts(opts *op){
 
+	printf("\nRUNNING WITH THE FOLLOWING OPTIONS\n");
+
 	printf("out_num is\t%d\n",op->out_num);
 	printf("out_rate is\t%d\n",op->out_rate);
 	printf("threshold is\t%d\n",op->threshold);
@@ -81,6 +90,8 @@ void printopts(opts *op){
 	printf("wavname os\t%s\n",op->wvn);
 	printf("pw is\t%d\n",op->pw);
 
+
+	printf("\n");
 
 }
  
@@ -91,10 +102,10 @@ void printusage(){
 	printf("\n");
 	printf("  OPT  Description        Default Vaule\n");
 	printf("  d    debug              off\n");
+	printf("  i    input file name    \"file.wav\"\n");
 	printf("  n    number of samples  %d\n",NSAMP);
-
-
-
+	printf("  o    output name        \"thiswav\"\n");
+	
 }
 
 int mygo(int argc, char **argv, opts* op){
@@ -116,6 +127,8 @@ int mygo(int argc, char **argv, opts* op){
 			break;	
 		case 'i': //Infile needed:
 			sprintf(op->ifn,"%s",optarg);
+		case 'o': //Infile needed:
+			sprintf(op->wvn,"%s",optarg);
 		case 't':
 			op->threshold = atoi(optarg);
 			break;
@@ -169,28 +182,34 @@ int main(int argc, char **argv)
     info.format = 0;
     sf = sf_open(op->ifn,SFM_READ,&info);
     if (sf == NULL){
-        printf("Failed to open the file \"file.wav\".\n");
+        printf("Failed to open the file \"%s\".\n",op->ifn);
         exit(-1);
     }
 
     /* Print some of the info, and figure out how much data to read. */
+    
+    
+    printopts(op);
+    
+    
     f = info.frames;
     sr = info.samplerate;
     c = info.channels;
     
+    printf("Info for file %s\n",op->ifn);
     printf("frames=%d\n",f);
     printf("samplerate=%d, outrate=%d\n",sr,op->out_rate);
     printf("channels=%d\n",c);
     num_items = f*c;
     printf("num_items=%d\n",num_items);
-    
+        
     /* Allocate space for the data to be read, then read it. */
     buf = (int *) malloc(num_items*sizeof(int));
     num = sf_read_int(sf,buf,num_items);
     sf_close(sf);
     printf("Read %d items\n",num);
 
-    /* Write the data to filedata.out. */
+    /* Write the data to filedata.out, as a check */
     out = fopen("filedata.out","w");
     if(op->pw){
 		for (i = 0; i < num; i += c)
@@ -202,15 +221,9 @@ int main(int argc, char **argv)
 		fclose(out);
     }
     
-    /* 32 bit stereo to 8-bit mono */
-    //16384 samplerate needed
-    
-    //4294967296
-    
-    float step = (float) sr / (float) op->out_rate;
-    
-    int outval;
-    
+  
+  
+  	/*NOW Start to make the header file */    
     sprintf(fn,"%s.h",op->wvn);
     out = fopen(fn,"w");
         
@@ -226,27 +239,42 @@ int main(int argc, char **argv)
  
     fprintf(out,"const int8_t __attribute__((progmem)) %s_DATA [] = {\n",op->wvn);
     
-    for(i=0; i < op->out_num; i++){
+    //work out the number of samples we are going to work with: 
+    int nsamp = op->out_num < f ? op->out_num : f;     
+    int nperrow=10,cc;
+    int outval;
+
+	j=0;
+    for(i=0; i < nsamp; i++){
     
-    	//let's print out 10 numbers per row: 
-    	for(j=0;j<10;j++){
-    		//Get the index
-    		idx = (float) (i*step*c); //truncates 
-    		outval = (float) buf[idx] * 64 / 2147483648;		
-    		printf("idx = %d\t inval = %d\t outidx = %d\t outval = %d\n",idx,buf[idx],i,outval);
-    		fprintf(out,"%d",outval);
-    		
-    		if(i<(op->out_num)){
-    			fprintf(out,", /* %04d */\n",i);
-    		}
-    		else{
-    			fprintf(out,"};\n\n#endif /* %s_H_ */",op->wvn);
-    		}
-    		
-    		if(i==op->out_num)
-    			break;
-    		i++;
-    	}
+    	idx = i * c;
+    	outval = 0;
+    	//TODO: need other options for combining channels...l only, r only etc...
+    	for(cc=0;cc<c;cc++){
+    		outval += buf[idx+cc] >> 23;
+			printf("chan %d, idx = %d\t outval = %d\n",idx+cc, buf[idx+cc], buf[idx+cc] >> 23);
+		}
+		outval /= c;
+    	
+		fprintf(out,"%d",outval);
+		
+		if(i<(op->out_num)){
+			fprintf(out,", /* %04d */\n",i);
+		}
+		else{
+			fprintf(out,"};\n\n#endif /* %s_H_ */",op->wvn);
+		}
+		
+		if(i==op->out_num)
+			break;
+		i++;
+		if(j==nperrow){
+			j=0;
+			fprintf(out,"\n");
+		}
+		else{
+			fprintf(out,"\t");
+		}
     
     }
     
@@ -259,7 +287,6 @@ int main(int argc, char **argv)
 
 	}
      
-     
-        
+    printf("maxmium int size is %d\n",INT_MAX);   
     return 0;
     }

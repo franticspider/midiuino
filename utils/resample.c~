@@ -1,0 +1,56 @@
+#include <stdio.h>
+#include <sndfile.h>
+#include <samplerate.h>
+
+#define BUFFER_LEN 1024
+#define MAX_CHANNELS 6
+
+int main ()
+{
+    static float datain [BUFFER_LEN];
+    static float dataout [BUFFER_LEN];
+    
+    SNDFILE *infile, *outfile;
+    SF_INFO     sfinfo, sfinfo2 ;
+    int         readcount ;
+    const char  *infilename = "bd.wav" ;
+    const char  *outfilename = "bd_resamp.wav" ;
+    SRC_DATA    src_data;
+    
+    infile = sf_open (infilename, SFM_READ, &sfinfo);
+    outfile = sf_open (outfilename, SFM_WRITE, &sfinfo2);
+
+    /*Let's get some info*/
+    
+    printf("frames=%d\n",sfinfo.frames);
+    printf("samplerate=%d\n",sfinfo.samplerate);
+    printf("channels=%d\n",sfinfo.channels);
+    num_items = f*c;
+    printf("num_items=%d\n",num_items);
+    
+    
+    /*********************/
+
+    src_data.data_in = datain;
+    src_data.input_frames = BUFFER_LEN;
+    src_data.data_out = dataout;
+    src_data.output_frames = BUFFER_LEN;
+    src_data.src_ratio = 0.5;
+
+    src_simple (&src_data, SRC_SINC_BEST_QUALITY, 1);
+
+    while ((readcount = sf_read_float (infile, datain, BUFFER_LEN)))
+    {
+        src_simple (&src_data, SRC_SINC_BEST_QUALITY, 1);
+        sf_write_float (outfile, dataout, readcount) ;
+    };
+
+    sf_close (infile);
+    sf_close (outfile);
+
+    sf_open ("C:/Users/Oli/Desktop/Done.wav", SFM_READ, &sfinfo2);
+
+    printf("%d", sfinfo2.samplerate);
+
+    return 0;
+}

@@ -5,6 +5,8 @@
 #include <samplerate.h>
 
 #include <unistd.h>
+#include <limits.h>
+
 
 /*
 
@@ -24,6 +26,14 @@ Reading further, it might be better to adapt the following to do what I want!
 Tom says "suede-ocode"
 
 https://github.com/erikd/libsndfile/blob/master/programs/sndfile-convert.c
+
+
+Alternative strategy is to install sndfile-convert using apt-get. Then use this to get the 8 bit sample conversion (widely regarded to be the best), THEN read that to generate the arduino sample file. Seems better to me!
+
+The proper resampling binary is here: 
+~/software/libsamplerate-0.1.9/examples$ ./sndfile-resample -h
+
+
 
 */
 
@@ -248,6 +258,9 @@ int main(int argc, char **argv)
     	printf("\nYou ran moz_samp with no options\ndo: \"moz_samp -h\" for help\n\n");
 
 	}
+     
+    printf("maxmium int size is %d\n",INT_MAX);
+     
         
     return 0;
     }

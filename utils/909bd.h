@@ -1,12 +1,12 @@
-#ifndef thiswav_H_
-#define thiswav_H_
+#ifndef 909bd_H_
+#define 909bd_H_
 
 #include "Arduino.h"
 #include <avr/pgmspace.h>
 
-#define thiswav_NUM_CELLS 1024
-#define thiswav_SAMPLERATE 32768
-const int8_t __attribute__((progmem)) thiswav_DATA [] = {
+#define 909bd_NUM_CELLS 1024
+#define 909bd_SAMPLERATE 32768
+const int8_t __attribute__((progmem)) 909bd_DATA [] = {
 0, /* 0000 */
 	0, /* 0002 */
 	0, /* 0004 */
