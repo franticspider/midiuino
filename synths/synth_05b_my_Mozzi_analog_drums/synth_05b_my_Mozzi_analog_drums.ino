@@ -515,6 +515,7 @@ int bitCrush(int x, int a)
   return (x >> a) << a;
 }
 
+//TODO: do this as a macro for speed!
 // strip the low bits off!
 /* x comes in as an int to get the space we need to do the bitshifting.. I think? */
 inline int8_t MidibitCrush(int x, byte bc)

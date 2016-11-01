@@ -10,13 +10,13 @@
 #this works better, resampling before reducing bit depth:
 
 #RESAMPLE:
-~/software/libsamplerate-0.1.9/examples/sndfile-resample -to 32768  $1 tmp.wav
+~/software/libsamplerate-0.1.9/examples/sndfile-resample -to $3 $1 tmp.wav
 
 #CONVERT TO 8 BIT
 sndfile-convert -pcms8 tmp.wav tmp.flac
 
 #CREATE THE HEADER
-./moz_samp -i tmp.flac -o $2
+./moz_samp -i tmp.flac -l 3072 -o $2
 
 #tidy up
 rm tmp.wav

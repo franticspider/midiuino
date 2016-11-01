@@ -45,8 +45,9 @@ then run this to generate the header. Simples!
 */
 
 
-#define NLEN 256
-#define NSAMP 32768
+#define NLEN 256         //name length
+#define SAMPLERATE 16384 //number of samples
+#define NSAMP
 
 /* structure to hold the params */
 typedef struct td_opts{
@@ -65,8 +66,8 @@ opts * godefaults(){
 	opts *op;
 	op = (opts *) malloc(sizeof(opts));
 	
-    op->out_num = 2048;//1024;
-    op->out_rate = NSAMP;
+    op->out_num = 0;//NSAMP;//1024;
+    op->out_rate = SAMPLERATE;
     op->threshold = 0; //if zero, we won't apply  threshold
 	
 	sprintf(op->ifn,"file.wav");
@@ -89,6 +90,13 @@ void printopts(opts *op){
 	printf("infile is\t%s\n",op->ifn);
 	printf("wavname os\t%s\n",op->wvn);
 	printf("pw is\t%d\n",op->pw);
+	
+	
+    if(op->out_num)
+     	printf("number of samples limited to %d\n",op->out_num);
+    else
+    	printf("unlimited number of samples (out_num is %d)\n",op->out_num);
+	
 
 
 	printf("\n");
@@ -103,7 +111,8 @@ void printusage(){
 	printf("  OPT  Description        Default Vaule\n");
 	printf("  d    debug              off\n");
 	printf("  i    input file name    \"file.wav\"\n");
-	printf("  n    number of samples  %d\n",NSAMP);
+	printf("  l    limit of samples   OFF\n");
+	printf("  n    rate of samples    %d\n",SAMPLERATE);
 	printf("  o    output name        \"thiswav\"\n");
 	
 }
@@ -112,7 +121,7 @@ int mygo(int argc, char **argv, opts* op){
 
 	int c;
 	opterr = 0;
-	while ((c = getopt (argc, argv, "abdhi:n:o:t:")) != -1){
+	while ((c = getopt (argc, argv, "abdhi:l:n:o:t:")) != -1){
 		switch (c){
 		case 'a':
 			break;
@@ -127,6 +136,8 @@ int mygo(int argc, char **argv, opts* op){
 			break;	
 		case 'i': //Infile needed:
 			sprintf(op->ifn,"%s",optarg);
+		case 'l':
+			op->out_num = atoi(optarg);
 		case 'o': //Infile needed:
 			sprintf(op->wvn,"%s",optarg);
 		case 't':
@@ -226,6 +237,14 @@ int main(int argc, char **argv)
   	/*NOW Start to make the header file */    
     sprintf(fn,"%s.h",op->wvn);
     out = fopen(fn,"w");
+    
+    
+    //work out the number of samples we are going to work with: 
+    int nsamp;
+    if(op->out_num)
+     	nsamp = op->out_num < f ? op->out_num : f;
+    else
+    	nsamp = f;
         
     /* Header info.... */
     fprintf(out,"#ifndef %s_H_\n",op->wvn);
@@ -234,15 +253,16 @@ int main(int argc, char **argv)
     fprintf(out,"#include \"Arduino.h\"\n");
     fprintf(out,"#include <avr/pgmspace.h>\n");
     fprintf(out,"\n");
-    fprintf(out,"#define %s_NUM_CELLS 1024\n",op->wvn);
-    fprintf(out,"#define %s_SAMPLERATE %d\n",op->wvn,NSAMP);
+    fprintf(out,"#define %s_NUM_CELLS %d\n",op->wvn,nsamp);
+    fprintf(out,"#define %s_SAMPLERATE %d\n",op->wvn,SAMPLERATE);
  
     fprintf(out,"const int8_t __attribute__((progmem)) %s_DATA [] = {\n",op->wvn);
     
-    //work out the number of samples we are going to work with: 
-    int nsamp = op->out_num < f ? op->out_num : f;     
+    	
     int nperrow=10,cc;
     int outval;
+    
+    int bitshift = 25;
 
 	j=0;
     for(i=0; i < nsamp; i++){
@@ -251,33 +271,32 @@ int main(int argc, char **argv)
     	outval = 0;
     	//TODO: need other options for combining channels...l only, r only etc...
     	for(cc=0;cc<c;cc++){
-    		outval += buf[idx+cc] >> 23;
-			printf("chan %d, idx = %d\t outval = %d\n",idx+cc, buf[idx+cc], buf[idx+cc] >> 23);
+    		//Bit shifting: 31 bit to 8 bit as follows 
+    		//(because libsnd always scales to the most significant bit)
+    		outval += buf[idx+cc] >> bitshift;
+			printf("chan %d, idx = %d\t outval = %d\n",idx+cc, buf[idx+cc], buf[idx+cc] >> bitshift);
 		}
 		outval /= c;
     	
-		fprintf(out,"%d",outval);
+    	if(i){//for all but the first entry, we need a comma!   	
+			fprintf(out,"\n,");	
+    	}
+    	
+		fprintf(out,"%d\t/* %04d */",outval,i);
 		
-		if(i<(op->out_num)){
-			fprintf(out,", /* %04d */\n",i);
-		}
-		else{
-			fprintf(out,"};\n\n#endif /* %s_H_ */",op->wvn);
-		}
-		
-		if(i==op->out_num)
-			break;
-		i++;
+		/*TODO: sort this out if we think rows of 10 numbers are neater... 
 		if(j==nperrow){
 			j=0;
 			fprintf(out,"\n");
 		}
 		else{
 			fprintf(out,"\t");
-		}
+		}*/
     
     }
-    
+			
+	fprintf(out,"};\n\n#endif /* %s_H_ */",op->wvn);
+
     fclose(out);
     
     printopts(op);

@@ -166,13 +166,13 @@ int updateAudio(){
  //int x = (envelope.next() * lpf.next(osc.next()))>>8; 
   //x = bitCrush(x, crushCtrl>>4);
   //x = (x * crushCtrl)>>4;  // simple gain
-  x = bitCrush(x, 6);
-  x = lpf.next(x);
+//  x = bitCrush(x, 6);
+//  x = lpf.next(x);
 
   // drums please!
   int drums = kickSamp.next() + snareSamp.next() + hihatcSamp.next() + hihatoSamp.next();
-  drums = bitCrush(drums,6);
-  x += drums<<1;
+  //drums = bitCrush(drums,6);
+  x = drums<<1;
   return x;
 }
 
