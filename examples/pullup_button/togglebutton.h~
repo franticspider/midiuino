@@ -1,0 +1,48 @@
+
+
+
+
+
+
+
+
+#ifndef __TOGGLEBUTTON_H__
+#define __TOGGLEBUTTON_H__
+
+#include <stdlib.h>
+
+class ToggleButton
+{
+//variables
+public:
+
+	//VATIABLES
+	unsigned char inpin;
+	bool dotoggle;
+	unsigned char outpin;
+
+
+	//FUNCTIONS: 
+	ToggleButton() {
+		dotoggle = TRUE;
+	}
+	ToggleButton(unsigned char input, unsigned char output, bool toggle=TRUE){
+		inpin = input;
+		outpin = output;
+		dotoggle = toggle;
+	}
+	
+	
+	~ToggleButton();
+	void setValue(unsigned char newValue){value_ = newValue;}
+	unsigned char getValue(){return value_;}
+	bool getMoving(){return moving_;}
+	bool hasChanged(unsigned char ticksPassed);
+	
+protected:
+private:
+public:
+
+}; //ToggleButton
+
+#endif //__TOGGLEBUTTON_H__

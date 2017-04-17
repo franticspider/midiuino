@@ -45,9 +45,9 @@ MIDI_CREATE_DEFAULT_INSTANCE();
 #include "jjfx3.h"
 
 #include <mozzi_midi.h>
-#include <ADSR.h>
+//#include <ADSR.h>
 //#include <fixedMath.h>
-#include <LowPassFilter.h>
+//#include <LowPassFilter.h>
 
 // use #define for CONTROL_RATE, not a constant
 #define CONTROL_RATE 128 // powers of 2 please
@@ -87,7 +87,16 @@ byte fq_f2=64;
 byte fq_f3=64;
 
 
-int crushCtrl = 0;
+/* looping Settings */
+boolean loop_bd=false;
+boolean loop_sn=false;
+boolean loop_ch=false;
+boolean loop_oh=false;
+boolean loop_fx1=false; //true;  //for testing
+boolean loop_fx2=false;
+boolean loop_fx3=false;
+
+#define LETSHAVELEDS
 
 #define LED 6   //RED  // to see if MIDI is being recieved
 
@@ -95,7 +104,6 @@ int crushCtrl = 0;
 #define LEDB 2  //BLUE
 #define LEDC 3  //GREEN
 #define LEDD 4  //Bike LED (superbright)
-
 
 
 void reset_params(){
@@ -107,19 +115,36 @@ void reset_params(){
   bc_f1=0;
   bc_f2=0;
   bc_f3=0;
+
   
-  
-  /* Freqshift Settings 
-  byte value = 64;
-  jjbdSamp.setFreq(MidiSetFreq(value,jjbd_SAMPLERATE,jjbd_NUM_CELLS));
-  jjsnSamp.setFreq(MidiSetFreq(value,jjsn_SAMPLERATE,jjsn_NUM_CELLS));
-  jjchSamp.setFreq(MidiSetFreq(value,jjch_SAMPLERATE,jjch_NUM_CELLS));
-  jjohSamp.setFreq(MidiSetFreq(value,jjoh_SAMPLERATE,jjoh_NUM_CELLS));
-  jjfx1Samp.setFreq(MidiSetFreq(value,jjfx1_SAMPLERATE,jjfx1_NUM_CELLS));
-  jjfx2Samp.setFreq(MidiSetFreq(value,jjfx2_SAMPLERATE,jjfx2_NUM_CELLS));
-  jjfx3Samp.setFreq(MidiSetFreq(value,jjfx2_SAMPLERATE,jjfx2_NUM_CELLS));
-  */
+ fq_bd=64;
+ fq_sn=64;
+ fq_hc=64;
+ fq_ho=64;
+ fq_f1=64;
+ fq_f2=64;
+ fq_f3=64;
+
+
+/* looping Settings */
+ loop_bd=false;
+ loop_sn=false;
+ loop_ch=false;
+ loop_oh=false;
+ loop_fx1=false; //true;  //for testing
+ loop_fx2=false;
+ loop_fx3=false;
+ 
 }
+
+
+void fireLED(int led, boolean val){
+#ifdef LETSHAVELEDS
+  digitalWrite(led, val);
+#endif  
+}
+
+
 
 
 void HandleNoteOn(byte channel, byte note, byte velocity) {
@@ -132,64 +157,82 @@ void HandleNoteOn(byte channel, byte note, byte velocity) {
     case 24: 
       reset_params();
       
-      digitalWrite(LEDA, HIGH);
-      digitalWrite(LEDB, HIGH);
-      digitalWrite(LEDC, HIGH);
-      digitalWrite(LEDD, HIGH);
-      digitalWrite(LED , HIGH);
+      fireLED(LEDA, HIGH);
+      fireLED(LEDB, HIGH);
+      fireLED(LEDC, HIGH);
+      fireLED(LEDD, HIGH);
+      fireLED(LED , HIGH);
       break;
-
-
     
     /*KICK*/
     case 36:  //Going to try to set the bass drum going!
       jjbdSamp.start();
-      digitalWrite(LEDA, HIGH);
+      if(loop_bd){
+        jjbdSamp.setLoopingOn();
+      }
+      fireLED(LEDA, HIGH);
       break;
 
     /*TRAP*/
     case 40://38: //Going to try to set the bass drum going!
     case 41:
       jjsnSamp.start();
-      digitalWrite(LEDB, HIGH);
+      if(loop_sn){
+        jjsnSamp.setLoopingOn();
+      }
+      fireLED(LEDB, HIGH);
       break;
 
     /*TISH*/
     case 45://41:
       jjchSamp.start();
-      digitalWrite(LEDC, HIGH);
+      if(loop_ch){
+        jjchSamp.setLoopingOn();
+      }
+      fireLED(LEDC, HIGH);
       break;
       
     case 47://40:
       jjohSamp.start();
-      digitalWrite(LEDC, HIGH);
+      if(loop_oh){
+        jjohSamp.setLoopingOn();
+      }
+      fireLED(LEDC, HIGH);
       break;
 
     /*BLIP*/
     case 48:
       jjfx1Samp.start();
-      digitalWrite(LEDD, HIGH);
+      if(loop_fx1){
+        jjfx1Samp.setLoopingOn();
+      }
+      fireLED(LEDD, HIGH);
       break;
     
     case 49:
       jjfx2Samp.start();
-      digitalWrite(LEDD, HIGH);
+      if(loop_fx2){
+        jjfx2Samp.setLoopingOn();
+      }
+      fireLED(LEDD, HIGH);
       break;
     case 50:
       jjfx3Samp.start();
-      digitalWrite(LEDD, HIGH);
+      if(loop_fx3){
+        jjfx3Samp.setLoopingOn();
+      }
+      fireLED(LEDD, HIGH);
       break;
 
   }
 
-  digitalWrite(LED, HIGH);
 }
 
 
 
 void HandleNoteOff(byte channel, byte note, byte velocity) {
   //envelope.noteOff();
-  digitalWrite(LED, LOW);
+  fireLED(LED, LOW);
 
   switch (note) {
     
@@ -197,51 +240,53 @@ void HandleNoteOff(byte channel, byte note, byte velocity) {
     case 24: 
       reset_params();
       
-      digitalWrite(LEDA, LOW);
-      digitalWrite(LEDB, LOW);
-      digitalWrite(LEDC, LOW);
-      digitalWrite(LEDD, LOW);
-      digitalWrite(LED , LOW);
+      fireLED(LEDA, LOW);
+      fireLED(LEDB, LOW);
+      fireLED(LEDC, LOW);
+      fireLED(LEDD, LOW);
+      fireLED(LED , LOW);
       break;
       
     /*KICK*/
     case 36:  
     jjbdSamp.stop();
-      digitalWrite(LEDA, LOW);
+      fireLED(LEDA, LOW);
       break;
 
     /*TRAP*/
     case 40://38: //Going to try to set the bass drum going!
     case 41:
       jjsnSamp.stop();//start(jjsn_NUM_CELLS-1);
-      digitalWrite(LEDB, LOW);
+      fireLED(LEDB, LOW);
       break;
 
     /*TISH*/
     case 45://41:
       jjchSamp.stop();//.start(jjch_NUM_CELLS-1);
-      digitalWrite(LEDC, LOW);
+      fireLED(LEDC, LOW);
       break;
   
     case 47://40:
       jjohSamp.stop();//.start(jjoh_NUM_CELLS-1);
-      digitalWrite(LEDC, LOW);
+      fireLED(LEDC, LOW);
       break;
 
     /*BLIP*/
     case 48:
       jjfx1Samp.stop();//.start(jjfx1_NUM_CELLS-1);
-      digitalWrite(LEDD, LOW);
+      //jjfx1Samp.setLoopingOff(); /*no need to do this - Called inside stop */
+      
+      fireLED(LEDD, LOW);
       break;
     
     case 49:
       jjfx2Samp.stop();//.start(jjfx2_NUM_CELLS-1);
-      digitalWrite(LEDD, LOW);
+      fireLED(LEDD, LOW);
       break;
     
     case 50:
       jjfx3Samp.stop();//.start(jjfx3_NUM_CELLS-1);
-      digitalWrite(LEDD, LOW);
+      fireLED(LEDD, LOW);
       break;
   }
 
@@ -254,7 +299,7 @@ int MidiSetStart(byte value,int ncells){
   
 }
 
-
+/* TODO: Get rid of the divides here! */
 float MidiSetFreq(byte value, int rate, int ncells){
 
     float freq;
@@ -316,6 +361,10 @@ void HandleControlChange (byte channel, byte number, byte value)
    *  SAMPLE_START:
    *  
    *  SAMPLE_END:
+   *  
+   *  
+   *  
+   *  LOOPING:
    *  
    */  
   
@@ -393,32 +442,81 @@ void HandleControlChange (byte channel, byte number, byte value)
       break;
 
 
+    /* LOOP */
+    case 80:
+      if(value > 64)
+        loop_bd = true;
+      else
+        loop_bd = false;
+      break;
+    case 81:
+      if(value > 64)
+        loop_sn = true;
+      else
+        loop_sn = false;
+      break;
+    case 82:
+      if(value > 64)
+        loop_ch = true;
+      else
+        loop_ch = false;
+      break;
+    case 83:
+      if(value > 64)
+        loop_oh = true;
+      else
+        loop_oh = false;
+      break;
+    case 84:
+      if(value > 64)
+        loop_fx1 = true;
+      else
+        loop_fx1 = false;
+      break;
+    case 85:
+      if(value > 64)
+        loop_fx2 = true;
+      else
+        loop_fx2 = false;
+      break;
+    case 86:
+      if(value > 64)
+        loop_fx3 = true;
+      else
+        loop_fx3 = false;
+      break;
+
+
   }
 }
 
 
-float calc_freq(float rate, float ncels, byte val){
-
-
-
-  
-}
+//float calc_freq(float rate, float ncels, byte val){
+//}
 
 
 
 void setup() {
-  pinMode(LED, OUTPUT);
 
+  //This is from mintysynth - check it woiks!
+  DIDR0 = 0x3F;   //disable the digital input buffers on the analog pins to save a bit of power and reduce noise.
+
+
+
+
+#ifdef LETSHAVELEDS
+  pinMode(LED, OUTPUT);
   pinMode(LEDA, OUTPUT);
   pinMode(LEDB, OUTPUT);
   pinMode(LEDC, OUTPUT);
   pinMode(LEDD, OUTPUT);
+#endif
 
   //just in case...
-  digitalWrite(LEDA, LOW);
-  digitalWrite(LEDB, LOW);
-  digitalWrite(LEDC, LOW);
-  digitalWrite(LEDD, LOW);
+  fireLED(LEDA, LOW);
+  fireLED(LEDB, LOW);
+  fireLED(LEDC, LOW);
+  fireLED(LEDD, LOW);
 
 
   // Initiate MIDI communications, listen to all channels
@@ -461,8 +559,8 @@ void setup() {
   startMozzi(CONTROL_RATE);
 }
 
-int beat = 0;
-int oldBeat = 0;
+//int beat = 0;
+//int oldBeat = 0;
 
 void updateControl() {
   MIDI.read();
@@ -470,26 +568,21 @@ void updateControl() {
 
 
 // strip the low bits off!
-int bitCrush(int x, int a)
-{
-  return (x >> a) << a;
-}
+//int bitCrush(int x, int a)
+//{
+//  return (x >> a) << a;
+//}
 
 // strip the low bits off!
 /* x comes in as an int to get the space we need to do the bitshifting.. I think? */
 inline int8_t MidibitCrush(int x, byte bc)
 {
-//  if(bc)
-    return (x >> bc) << bc;
-//  else
-//    return x;
+    return ((x >> bc) << bc);
 }
 
 
 int updateAudio() {
 
-
-  //hmmm - bitcrushing each sample seems a bit too processor heavy...
   int drums = 
               MidibitCrush( jjbdSamp.next(), bc_bd) + 
               MidibitCrush( jjsnSamp.next(), bc_sn)  + 
@@ -498,24 +591,8 @@ int updateAudio() {
               MidibitCrush( jjfx1Samp.next(), bc_f1)  + 
               MidibitCrush( jjfx2Samp.next(), bc_f2)  + 
               MidibitCrush( jjfx3Samp.next(), bc_f3) ;
-              
-  /*            
-  int drums = 
-              jjbdSamp.next() + 
-              jjsnSamp.next()  + 
-              jjchSamp.next() + 
-              jjohSamp.next()  + 
-              jjfx1Samp.next() + 
-              jjfx2Samp.next() + 
-              jjfx3Samp.next();
-  */            
+        
   return drums << 1;
-  /*
-    //drums = MidibitCrush(drums);
-    //x += drums << 1;
-    x = drums << 1;
-    return x;
-  */
 }
 
 
