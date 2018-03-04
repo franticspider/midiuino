@@ -25,9 +25,12 @@
 #define B1_INPUT 2
 #define B1_OUTPUT 13
 
+#define B2_INPUT A2
+
 #include "togglebutton.h"
 
 ToggleButton b1(B1_INPUT,true);
+ToggleButton b2(B2_INPUT,true);
 
 void setup() {
   //start serial connection
@@ -37,20 +40,21 @@ void setup() {
   //pinMode(2, INPUT_PULLUP);
 
   b1.setup();
+  b2.setup();
   
   pinMode(13, OUTPUT);
   pinMode(4, OUTPUT);
-
+  pinMode(9, OUTPUT);
 }
 
 void loop() {
   //read the pushbutton value into a variable
-  int sensorVal = digitalRead(2);
+  //int sensorVal = digitalRead(2);
   //print out the value of the pushbutton
   //Serial.println(sensorVal);
 
   b1.update();
-
+  b2.update();
 
   // Keep in mind the pullup means the pushbutton's
   // logic is inverted. It goes HIGH when it's open,
@@ -58,5 +62,8 @@ void loop() {
   // button's pressed, and off when it's not:
     digitalWrite(13, b1.istate);
     digitalWrite(4 ,b1.tstate);
-  
+
+    digitalWrite(9, b2.tstate);
+    //if(!b1.istate)
+      digitalWrite(13,b2.istate);
 }
